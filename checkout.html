@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Козуначената Фабрика — Плащане</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5ede0;
+    --warm-white: #fdf8f2;
+    --gold: #c8963e;
+    --gold-light: #e8b96a;
+    --brown-dark: #2c1a0e;
+    --brown-mid: #5c3a1e;
+    --brown-light: #8b5e3c;
+    --rose: #c97b5a;
+    --green: #3a7c5c;
+    --green-light: #edf7f2;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--cream);
+    background-image:
+      radial-gradient(ellipse at 20% 50%, rgba(200,150,62,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 20%, rgba(201,123,90,0.06) 0%, transparent 50%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    min-height: 100vh;
+    font-family: 'Jost', sans-serif;
+    color: var(--brown-dark);
+    padding: 0 16px 60px;
+  }
+
+  /* ---- HEADER ---- */
+  header {
+    text-align: center;
+    padding: 44px 20px 30px;
+  }
+
+  .brand-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 6vw, 2.6rem);
+    font-weight: 700;
+    color: var(--brown-dark);
+    line-height: 1.1;
+  }
+
+  header h1 em { font-style: italic; color: var(--gold); }
+
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 22px auto;
+    max-width: 300px;
+  }
+  .divider span { flex: 1; height: 1px; background: linear-gradient(to right, transparent, var(--gold-light), transparent); }
+  .divider::before { content: '✦'; color: var(--gold); font-size: 13px; }
+
+  /* ---- ORDER SUMMARY BOX ---- */
+  .order-summary {
+    background: var(--warm-white);
+    border-radius: 16px;
+    padding: 22px 22px 18px;
+    max-width: 520px;
+    margin: 0 auto 20px;
+    box-shadow: 0 2px 6px rgba(44,26,14,0.06), 0 8px 28px rgba(44,26,14,0.08);
+    border: 1px solid rgba(200,150,62,0.15);
+    position: relative;
+  }
+
+  .order-summary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22px; right: 22px; height: 3px;
+    background: linear-gradient(to right, var(--gold), var(--rose), var(--gold));
+    border-radius: 0 0 4px 4px;
+  }
+
+  .summary-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .summary-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 4px;
+  }
+
+  .order-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--brown-dark);
+    letter-spacing: 1px;
+  }
+
+  .copy-btn {
+    background: rgba(200,150,62,0.1);
+    border: 1.5px solid rgba(200,150,62,0.3);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--gold);
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .copy-btn:hover { background: rgba(200,150,62,0.2); border-color: var(--gold); }
+  .copy-btn.copied { background: var(--green-light); border-color: var(--green); color: var(--green); }
+
+  .summary-rows { display: flex; flex-direction: column; gap: 8px; }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #faf5ef;
+  }
+
+  .summary-row .label { color: var(--brown-light); }
+  .summary-row .value { font-weight: 500; color: var(--brown-dark); text-align: right; }
+
+  .summary-row.total {
+    background: rgba(200,150,62,0.08);
+    border: 1px solid rgba(200,150,62,0.2);
+    font-size: 0.95rem;
+  }
+  .summary-row.total .value { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+
+  /* ---- PAYMENT CARD ---- */
+  .pay-card {
+    background: var(--warm-white);
+    border-radius: 16px;
+    padding: 26px 22px;
+    max-width: 520px;
+    margin: 0 auto 16px;
+    box-shadow: 0 2px 6px rgba(44,26,14,0.06), 0 8px 28px rgba(44,26,14,0.08);
+    border: 1px solid rgba(200,150,62,0.12);
+    display: none;
+  }
+
+  .pay-card.active { display: block; animation: fadeIn 0.35s ease; }
+
+  .pay-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .pay-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+
+  .pay-icon.revolut { background: linear-gradient(135deg, #191c33, #2c3075); }
+  .pay-icon.bank { background: linear-gradient(135deg, var(--brown-dark), var(--brown-mid)); }
+  .pay-icon.cash { background: linear-gradient(135deg, #3a7c5c, #2d6349); }
+
+  .pay-card-title { font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 3px; }
+  .pay-card-name { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; color: var(--brown-dark); }
+
+  /* ---- REFERENCE BOX ---- */
+  .reference-box {
+    background: linear-gradient(135deg, var(--brown-dark), var(--brown-mid));
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .reference-box::before {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 80px; height: 80px;
+    border-radius: 50%;
+    background: rgba(200,150,62,0.2);
+  }
+
+  .ref-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .ref-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+  }
+
+  .ref-instruction {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.5;
+  }
+
+  .ref-instruction strong { color: var(--gold-light); }
+
+  .copy-ref-btn {
+    margin-top: 12px;
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: #fff;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .copy-ref-btn:hover { background: rgba(255,255,255,0.2); }
+  .copy-ref-btn.copied { background: rgba(58,124,92,0.4); border-color: rgba(58,124,92,0.6); }
+
+  /* ---- ACTION BUTTON ---- */
+  .action-btn {
+    width: 100%;
+    border: none;
+    border-radius: 12px;
+    padding: 16px 20px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-decoration: none;
+    margin-bottom: 12px;
+  }
+
+  .btn-revolut {
+    background: linear-gradient(135deg, #191c33, #2c3075);
+    color: #fff;
+  }
+  .btn-revolut:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(25,28,51,0.35); }
+
+  .btn-confirm {
+    background: linear-gradient(135deg, var(--green), #2d6349);
+    color: #fff;
+    margin-top: 6px;
+  }
+  .btn-confirm:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(58,124,92,0.35); }
+
+  .btn-cash-confirm {
+    background: linear-gradient(135deg, var(--brown-dark), var(--brown-mid));
+    color: var(--cream);
+  }
+  .btn-cash-confirm:hover { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(44,26,14,0.3); }
+
+  /* ---- BANK DETAILS ---- */
+  .bank-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+
+  .bank-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    background: #faf5ef;
+    border-radius: 8px;
+    font-size: 0.88rem;
+  }
+  .bank-row .bl { color: var(--brown-light); font-size: 0.8rem; }
+  .bank-row .bv {
+    font-weight: 500;
+    color: var(--brown-dark);
+    font-family: 'Jost', monospace;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .mini-copy {
+    background: none;
+    border: none;
+    color: var(--gold);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    transition: background 0.15s;
+    line-height: 1;
+  }
+  .mini-copy:hover { background: rgba(200,150,62,0.1); }
+
+  /* ---- CASH SECTION ---- */
+  .cash-info {
+    background: var(--green-light);
+    border: 1.5px solid rgba(58,124,92,0.25);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 18px;
+    font-size: 0.9rem;
+    color: #2d5040;
+    line-height: 1.7;
+    text-align: center;
+  }
+
+  .cash-info .big { font-size: 2rem; margin-bottom: 8px; display: block; }
+
+  /* ---- SUCCESS ---- */
+  .done-screen {
+    display: none;
+    text-align: center;
+    padding: 10px 0;
+    animation: fadeIn 0.5s ease;
+  }
+
+  .done-icon { font-size: 3.5rem; margin-bottom: 18px; display: block; }
+
+  .done-screen h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: var(--brown-dark);
+    margin-bottom: 12px;
+  }
+
+  .done-screen p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.05rem;
+    color: var(--brown-light);
+    line-height: 1.7;
+    margin-bottom: 20px;
+  }
+
+  .done-order-box {
+    background: rgba(200,150,62,0.08);
+    border: 1px solid rgba(200,150,62,0.25);
+    border-radius: 12px;
+    padding: 18px;
+    font-size: 0.88rem;
+    color: var(--brown-mid);
+    line-height: 1.9;
+    text-align: left;
+  }
+
+  .done-order-box .order-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  .done-order-box .order-num-big {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--brown-dark);
+    display: block;
+    margin-bottom: 14px;
+  }
+
+  /* ---- PAYMENT METHOD TABS ---- */
+  .pay-tabs {
+    display: flex;
+    gap: 10px;
+    max-width: 520px;
+    margin: 0 auto 4px;
+  }
+
+  .pay-tab {
+    flex: 1;
+    background: rgba(255,255,255,0.6);
+    border: 1.5px solid rgba(140,94,60,0.15);
+    border-radius: 10px;
+    padding: 12px 8px;
+    font-family: 'Jost', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--brown-light);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+
+  .pay-tab.active {
+    background: var(--warm-white);
+    border-color: var(--gold);
+    color: var(--brown-dark);
+    box-shadow: 0 2px 8px rgba(200,150,62,0.15);
+  }
+
+  .pay-tab .tab-icon { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+
+  /* ---- NO ORDER ---- */
+  .no-order {
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .no-order h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--brown-dark); margin-bottom: 10px; }
+  .no-order p { color: var(--brown-light); font-size: 0.9rem; margin-bottom: 20px; }
+  .back-link {
+    display: inline-block;
+    background: var(--brown-dark);
+    color: var(--cream);
+    text-decoration: none;
+    padding: 13px 28px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 0.78rem;
+    color: var(--brown-light);
+  }
+  footer strong { color: var(--gold); }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---- PRICE CALCULATOR ---- */
+  .price-calc {
+    background: var(--warm-white);
+    border-radius: 16px;
+    padding: 22px 22px 18px;
+    max-width: 520px;
+    margin: 0 auto 16px;
+    box-shadow: 0 2px 6px rgba(44,26,14,0.06), 0 8px 28px rgba(44,26,14,0.08);
+    border: 1px solid rgba(200,150,62,0.15);
+    position: relative;
+  }
+
+  .price-calc::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 22px; right: 22px; height: 3px;
+    background: linear-gradient(to right, var(--gold), var(--rose), var(--gold));
+    border-radius: 0 0 4px 4px;
+  }
+
+  .calc-title {
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .calc-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #faf5ef;
+    color: var(--brown-mid);
+  }
+
+  .calc-row.delivery-row { opacity: 0.5; }
+  .calc-row.delivery-row.active { opacity: 1; }
+
+  .calc-row .cr-val {
+    font-weight: 500;
+    color: var(--brown-dark);
+    font-family: 'Jost', monospace;
+  }
+
+  .calc-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(200,150,62,0.3), transparent);
+    margin: 8px 0;
+  }
+
+  .calc-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, var(--brown-dark), var(--brown-mid));
+    border-radius: 10px;
+    color: var(--cream);
+  }
+
+  .calc-total-row .ct-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    opacity: 0.7;
+  }
+
+  .calc-total-row .ct-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--gold-light);
+  }
+
+  .delivery-note {
+    margin-top: 10px;
+    font-size: 0.78rem;
+    color: var(--brown-light);
+    text-align: center;
+    font-style: italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="brand-tag">Козуначената Фабрика · Плащане</p>
+  <h1>Завърши<br><em>поръчката</em></h1>
+  <div class="divider"><span></span></div>
+</header>
+
+<!-- Will be populated by JS -->
+<div id="main-content"></div>
+
+<footer>
+  <p>Козуначената Фабрика &nbsp;·&nbsp; <strong>Ръчно изработено с любов</strong></p>
+  <p style="margin-top:6px; opacity:0.7">Самоков · България</p>
+</footer>
+
+<script>
+const REVOLUT_LINK   = 'https://revolut.me/antoannikov';
+const BANK_IBAN      = 'BG06 UBBS 8002 1045 9608 50';
+const BANK_BIC       = 'UBBSBGSF';  // УниКредит Булбанк
+const BANK_NAME      = 'Антоан Николов';
+
+const PRICES = {
+  choko: 8,
+  plain: 7,
+  delivery: 3.5,
+  currency: 'EUR'
+};
+
+// ---- Load order from sessionStorage ----
+let order = null;
+try { order = JSON.parse(sessionStorage.getItem('kf_order')); } catch(e) {}
+
+const main = document.getElementById('main-content');
+
+if (!order) {
+  main.innerHTML = `
+    <div class="no-order">
+      <h2>Няма активна поръчка</h2>
+      <p>Моля попълни формата за поръчка първо.</p>
+      <a href="index.html" class="back-link">← Към формата</a>
+    </div>`;
+} else {
+  renderCheckout();
+  renderCalculator();
+}
+
+// ---- RENDER ----
+function renderCheckout() {
+  const { orderNum, name, qtys, totalQty, delivery, address, payment, note } = order;
+  const ref = `ПОРЪЧКА ${orderNum}`;
+  const deliveryText = delivery === 'Доставка' ? `Доставка до: ${address}` : 'Вземане на място';
+
+  // Build variety string
+  const varieties = [];
+  if (qtys.choko > 0) varieties.push(`🍫 С шоколад — ${qtys.choko} бр.`);
+  if (qtys.plain  > 0) varieties.push(`🍞 Чист — ${qtys.plain} бр.`);
+
+  // Which tab is active based on order
+  let defaultTab = 'revolut';
+  if (payment === 'Банков превод') defaultTab = 'bank';
+  if (payment === 'В брой')        defaultTab = 'cash';
+
+  main.innerHTML = `
+    <!-- ORDER SUMMARY -->
+    <div class="order-summary">
+      <div class="summary-header">
+        <div>
+          <p class="summary-title">Номер на поръчката</p>
+          <p class="order-number" id="order-num-display">${orderNum}</p>
+        </div>
+        <button class="copy-btn" id="copy-order-btn" onclick="copyText('${orderNum}', 'copy-order-btn')">
+          📋 Копирай
+        </button>
+      </div>
+      <div class="summary-rows">
+        <div class="summary-row">
+          <span class="label">Клиент</span>
+          <span class="value">${name}</span>
+        </div>
+        ${varieties.map(v => `
+        <div class="summary-row">
+          <span class="label">${v.split('—')[0].trim()}</span>
+          <span class="value">${v.split('—')[1].trim()}</span>
+        </div>`).join('')}
+        <div class="summary-row">
+          <span class="label">Получаване</span>
+          <span class="value">${deliveryText}</span>
+        </div>
+        ${note ? `<div class="summary-row"><span class="label">Бележка</span><span class="value" style="font-size:0.82rem">${note}</span></div>` : ''}
+        <div class="summary-row total">
+          <span class="label">Общо</span>
+          <span class="value">${totalQty} бр.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PRICE CALCULATOR -->
+    <div class="price-calc" id="price-calc">
+      <p class="calc-title">💶 Калкулатор на поръчката</p>
+      <div class="calc-rows">
+        <div class="calc-row" id="calc-choko-row" style="display:none">
+          <span>🍫 С шоколад <span id="calc-choko-qty" style="opacity:0.6"></span></span>
+          <span class="cr-val" id="calc-choko-val">—</span>
+        </div>
+        <div class="calc-row" id="calc-plain-row" style="display:none">
+          <span>🍞 Чист <span id="calc-plain-qty" style="opacity:0.6"></span></span>
+          <span class="cr-val" id="calc-plain-val">—</span>
+        </div>
+        <div class="calc-divider"></div>
+        <div class="calc-row delivery-row" id="calc-delivery-row">
+          <span>🚗 Доставка</span>
+          <span class="cr-val" id="calc-delivery-val">—</span>
+        </div>
+      </div>
+      <div class="calc-total-row">
+        <span class="ct-label">Крайна сума</span>
+        <span class="ct-amount" id="calc-total-amount">0.00 €</span>
+      </div>
+      <p class="delivery-note" id="delivery-note"></p>
+    </div>
+
+    <!-- PAYMENT TABS -->
+    <div class="pay-tabs">
+      <button class="pay-tab ${defaultTab === 'revolut' ? 'active' : ''}" onclick="showTab('revolut')">
+        <span class="tab-icon">📲</span>Revolut
+      </button>
+      <button class="pay-tab ${defaultTab === 'bank' ? 'active' : ''}" onclick="showTab('bank')">
+        <span class="tab-icon">🏦</span>Банков превод
+      </button>
+      <button class="pay-tab ${defaultTab === 'cash' ? 'active' : ''}" onclick="showTab('cash')">
+        <span class="tab-icon">💵</span>В брой
+      </button>
+    </div>
+
+    <!-- REVOLUT CARD -->
+    <div class="pay-card ${defaultTab === 'revolut' ? 'active' : ''}" id="tab-revolut">
+      <div class="pay-card-header">
+        <div class="pay-icon revolut">💜</div>
+        <div>
+          <p class="pay-card-title">Плащане с</p>
+          <p class="pay-card-name">Revolut</p>
+        </div>
+      </div>
+
+      <div class="reference-box">
+        <p class="ref-label">Основание за плащане</p>
+        <p class="ref-value" id="ref-revolut">${ref}</p>
+        <p class="ref-instruction">
+          Задължително напиши точно това като <strong>основание / съобщение</strong> при изпращане на сумата.
+        </p>
+        <button class="copy-ref-btn" id="copy-ref-revolut" onclick="copyText('${ref}', 'copy-ref-revolut')">
+          📋 Копирай основанието
+        </button>
+      </div>
+
+      <a href="${REVOLUT_LINK}" target="_blank" class="action-btn btn-revolut">
+        <span>💜</span> Отвори Revolut
+      </a>
+
+      <button class="action-btn btn-confirm" onclick="confirmPayment('Revolut')">
+        ✓ &nbsp; Платих — потвърди поръчката
+      </button>
+    </div>
+
+    <!-- BANK CARD -->
+    <div class="pay-card ${defaultTab === 'bank' ? 'active' : ''}" id="tab-bank">
+      <div class="pay-card-header">
+        <div class="pay-icon bank">🏦</div>
+        <div>
+          <p class="pay-card-title">Плащане с</p>
+          <p class="pay-card-name">Банков превод</p>
+        </div>
+      </div>
+
+      <div class="reference-box">
+        <p class="ref-label">Основание за плащане</p>
+        <p class="ref-value">${ref}</p>
+        <p class="ref-instruction">
+          Задължително напиши точно това като <strong>основание / описание</strong> при нареждане на превода.
+        </p>
+        <button class="copy-ref-btn" id="copy-ref-bank" onclick="copyText('${ref}', 'copy-ref-bank')">
+          📋 Копирай основанието
+        </button>
+      </div>
+
+      <div class="bank-rows">
+        <div class="bank-row">
+          <span class="bl">Получател</span>
+          <span class="bv">${BANK_NAME} <button class="mini-copy" onclick="copyText('${BANK_NAME}', this)" title="Копирай">📋</button></span>
+        </div>
+        <div class="bank-row">
+          <span class="bl">IBAN</span>
+          <span class="bv" style="font-size:0.82rem">${BANK_IBAN} <button class="mini-copy" onclick="copyText('${BANK_IBAN.replace(/\s/g,'')}', this)" title="Копирай">📋</button></span>
+        </div>
+        <div class="bank-row">
+          <span class="bl">BIC / SWIFT</span>
+          <span class="bv">${BANK_BIC} <button class="mini-copy" onclick="copyText('${BANK_BIC}', this)" title="Копирай">📋</button></span>
+        </div>
+      </div>
+
+      <button class="action-btn btn-confirm" onclick="confirmPayment('Банков превод')">
+        ✓ &nbsp; Наредих превода — потвърди поръчката
+      </button>
+    </div>
+
+    <!-- CASH CARD -->
+    <div class="pay-card ${defaultTab === 'cash' ? 'active' : ''}" id="tab-cash">
+      <div class="pay-card-header">
+        <div class="pay-icon cash">💵</div>
+        <div>
+          <p class="pay-card-title">Плащане</p>
+          <p class="pay-card-name">В брой</p>
+        </div>
+      </div>
+      <div class="cash-info">
+        <span class="big">🤝</span>
+        Плащането е при получаване на козунаците.<br>
+        <strong>Запази номера на поръчката:</strong><br>
+        <strong style="font-size:1.1rem; color:#2d5040">${orderNum}</strong>
+      </div>
+      <button class="action-btn btn-cash-confirm" onclick="confirmPayment('В брой')">
+        ✓ &nbsp; Разбрах — потвърди поръчката
+      </button>
+    </div>
+
+    <!-- DONE SCREEN (hidden initially) -->
+    <div class="pay-card" id="done-screen" style="text-align:center">
+      <div class="done-screen" id="done-inner">
+        <span class="done-icon">🎉</span>
+        <h2>Поръчката е потвърдена!</h2>
+        <p>Ще се свържем с теб на <strong>${order.phone}</strong><br>за финално потвърждение.</p>
+        <div class="done-order-box">
+          <span class="order-label">Твоят номер на поръчката</span>
+          <span class="order-num-big">${orderNum}</span>
+          <span>👤 ${name}</span><br>
+          ${varieties.map(v => `<span>${v}</span><br>`).join('')}
+          <span>📦 ${deliveryText}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ---- PRICE CALCULATOR ----
+function renderCalculator() {
+  if (!order) return;
+  const { qtys, delivery, address } = order;
+
+  // Chocolate row
+  const chokoRow = document.getElementById('calc-choko-row');
+  if (qtys.choko > 0) {
+    chokoRow.style.display = 'flex';
+    document.getElementById('calc-choko-qty').textContent = `× ${qtys.choko}`;
+    document.getElementById('calc-choko-val').textContent = (qtys.choko * PRICES.choko).toFixed(2) + ' €';
+  }
+
+  // Plain row
+  const plainRow = document.getElementById('calc-plain-row');
+  if (qtys.plain > 0) {
+    plainRow.style.display = 'flex';
+    document.getElementById('calc-plain-qty').textContent = `× ${qtys.plain}`;
+    document.getElementById('calc-plain-val').textContent = (qtys.plain * PRICES.plain).toFixed(2) + ' €';
+  }
+
+  // Delivery
+  const deliveryRow = document.getElementById('calc-delivery-row');
+  const deliveryNote = document.getElementById('delivery-note');
+  let deliveryCost = 0;
+
+  if (delivery === 'Доставка') {
+    // Check if address contains Samokov (case-insensitive)
+    const isSamokov = /самоков/i.test(address || '');
+    if (isSamokov) {
+      deliveryCost = 0;
+      document.getElementById('calc-delivery-val').textContent = 'Безплатно';
+      deliveryNote.textContent = '🎉 Доставката до Самоков е безплатна!';
+    } else {
+      deliveryCost = PRICES.delivery;
+      document.getElementById('calc-delivery-val').textContent = PRICES.delivery.toFixed(2) + ' €';
+      deliveryNote.textContent = '📍 Доставка извън Самоков';
+    }
+    deliveryRow.classList.add('active');
+  } else {
+    document.getElementById('calc-delivery-val').textContent = 'Вземане на място';
+    deliveryRow.classList.add('active');
+    deliveryNote.textContent = '🏠 Вземаш козунаците лично — без такса доставка';
+  }
+
+  // Total
+  const subtotal = (qtys.choko * PRICES.choko) + (qtys.plain * PRICES.plain);
+  const total = subtotal + deliveryCost;
+  document.getElementById('calc-total-amount').textContent = total.toFixed(2) + ' €';
+}
+
+// ---- TAB SWITCHING ----
+function showTab(tab) {
+  document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.pay-tab').forEach(t => t.classList.remove('active'));
+  const card = document.getElementById('tab-' + tab);
+  if (card) card.classList.add('active');
+  const tabs = document.querySelectorAll('.pay-tab');
+  const map = { revolut: 0, bank: 1, cash: 2 };
+  if (tabs[map[tab]]) tabs[map[tab]].classList.add('active');
+}
+
+// ---- CONFIRM ----
+function confirmPayment(method) {
+  // Hide tabs & cards
+  document.querySelectorAll('.pay-card, .pay-tabs').forEach(el => el.style.display = 'none');
+  const done = document.getElementById('done-screen');
+  done.style.display = 'block';
+  done.classList.add('active');
+  document.getElementById('done-inner').style.display = 'block';
+  // Clear session so they can't re-submit
+  sessionStorage.removeItem('kf_order');
+}
+
+// ---- COPY HELPER ----
+function copyText(text, btnId) {
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = typeof btnId === 'string' ? document.getElementById(btnId) : btnId;
+    if (!btn) return;
+    const original = btn.textContent;
+    btn.textContent = '✓ Копирано!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 2000);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+</script>
+
+</body>
+</html>
