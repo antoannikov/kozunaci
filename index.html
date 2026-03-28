@@ -711,13 +711,12 @@
       nameField.classList.add('has-error'); valid = false;
     } else { nameField.classList.remove('has-error'); }
 
-    // Phone
-    const phone = document.getElementById('phone').value.trim();
-    const phoneField = document.getElementById('field-phone');
-    if (!/^[\d\s\+\-]{8,}$/.test(phone)) {
-      phoneField.classList.add('has-error'); valid = false;
-    } else { phoneField.classList.remove('has-error'); }
-
+   // Phone
+const phone = document.getElementById('phone').value.trim();
+const phoneField = document.getElementById('field-phone');
+if (!/^(\+359|00359|0)(8[7-9]\d{7}|[2-9]\d{6,7})$/.test(phone.replace(/\s/g, ''))) {
+  phoneField.classList.add('has-error'); valid = false;
+} else { phoneField.classList.remove('has-error'); }
     // Variety
     const totalQty = qtys.choko + qtys.plain;
     const varietyErr = document.getElementById('variety-error');
@@ -743,7 +742,7 @@
     const note = document.getElementById('note').value.trim();
 
     // Generate order number
-    const orderNum = 'КФ-2025-' + Math.floor(1000 + Math.random() * 9000);
+    const orderNum = 'КФ-2026-' + Math.floor(1000 + Math.random() * 9000);
 
     // Build order object
     const order = { orderNum, name, phone, qtys, totalQty, delivery, address, payment, note };
